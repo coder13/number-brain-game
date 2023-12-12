@@ -1,27 +1,16 @@
-// Websocket boilerplate using socket.io
-
 import express from 'express';
 import { createServer } from 'http';
 import { Server, Socket } from 'socket.io';
 import { PrivateGameState, Room, User } from '../app/src/types';
-import { generate } from 'random-words';
 import { buildBoardStateForPlayer, determineWinner, newGameState } from './game';
+import { generateSlug } from './helpers/randomWords';
 
 const port = process.env.PORT || 4000;
 
 const users = [];
 
-const generateId = () => {
-  return generate({
-    exactly: 3,
-    maxLength: 6,
-    seed: '2',
-    join: '-',
-  });
-}
-
 const rooms: Room[] = [{
-  id: generateId(),
+  id: generateSlug(5),
   name: 'Room 1',
   users: [],
 }];

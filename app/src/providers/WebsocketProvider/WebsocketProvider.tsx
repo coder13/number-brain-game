@@ -1,6 +1,7 @@
 import { PropsWithChildren, useEffect, useState } from "react";
 import { WebsocketContext, WebsocketContextProps } from "./WebsocketContext";
 import { Socket, io } from "socket.io-client";
+import { Room } from "../../types";
 
 interface WebsocketProviderProps extends PropsWithChildren {}
 
@@ -11,7 +12,7 @@ export function WebsocketProvider({ children }: WebsocketProviderProps) {
     connected: false,
     id: "",
   });
-  const [rooms, setRooms] = useState<string[]>([]);
+  const [rooms, setRooms] = useState<Room[]>([]);
 
   // useEffect(() => {
   //   if (!token) {
@@ -45,7 +46,7 @@ export function WebsocketProvider({ children }: WebsocketProviderProps) {
       console.log(data);
     });
 
-    _socket.on("rooms", (data: { rooms: string[] }) => {
+    _socket.on("rooms", (data: { rooms: Room[] }) => {
       setRooms(data.rooms);
     });
 
