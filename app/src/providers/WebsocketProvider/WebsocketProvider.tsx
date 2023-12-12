@@ -25,7 +25,7 @@ export function WebsocketProvider({ children }: WebsocketProviderProps) {
   useEffect(() => {
     console.log(14);
 
-    const _socket = io("ws://localhost:4000");
+    const _socket = io(import.meta.env.VITE_WS_URL as string);
 
     _socket.connect();
 
