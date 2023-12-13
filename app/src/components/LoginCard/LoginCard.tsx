@@ -13,8 +13,8 @@ export function LoginCard() {
   };
 
   return (
-    <div className="flex flex-col justify-center items-center h-full w-full">
-      <div className="border p-8 rounded-lg border-gray-300 drop-shadow-lg w-1/3">
+    <div className="flex flex-col justify-center items-center h-full w-2/3">
+      <div className="border p-8 rounded-lg border-gray-300 drop-shadow-lg w-full">
         <form onSubmit={handleLogin}>
           <label
             htmlFor="first_name"

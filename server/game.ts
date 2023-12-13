@@ -1,4 +1,4 @@
-import { PersonalizedGameState, PrivateGameState, User } from '../app/src/types';
+import { PersonalizedGameState, PrivateGameState, User } from './types';
 
 export const newGameState = ({ player1, player2 }: {
   player1: User,

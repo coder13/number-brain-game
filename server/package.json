@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "bun run --watch index.ts",
     "build": "tsc -b",
-    "start": "node dist/server"
+    "start": "NODE_ENV=production node dist/server"
   },
   "dependencies": {
     "@types/express": "^4.17.21",
@@ -29,6 +29,9 @@
     "vite": "^5.0.7"
   },
   "engines": {
-    "node": "16.x"
+    "node": "18.x"
+  },
+  "devDependencies": {
+    "@flydotio/dockerfile": "^0.4.11"
   }
 }

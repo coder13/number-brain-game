@@ -1,5 +1,6 @@
-import { Link } from "react-router-dom";
+import { CreateRoom } from "../components/CreateRoom";
 import { LoginCard } from "../components/LoginCard";
+import { RoomList } from "../components/RoomList";
 import { useAuth } from "../providers/AuthProvider";
 import { useWebsocket } from "../providers/WebsocketProvider";
 
@@ -7,33 +8,22 @@ export default function Page() {
   const { user } = useAuth();
   const { rooms } = useWebsocket();
 
-  if (!user) {
-    return (
-      <div className="flex flex-col justify-center items-center h-full w-full">
-        <LoginCard />
-      </div>
-    );
-  }
-
-  console.log(17, rooms);
-
   return (
-    <div className="flex flex-col h-full w-full">
-      <div className="p-2 pt-12 border-gray-300">
-        <h2 className="text-2xl font-bold pb-4">Rooms</h2>
-        <ul className="space-y-4">
-          {rooms.map((room) => (
-            <li
-              key={room.id}
-              className="w-full border rounded-md text-2xl hover:bg-slate-50 cursor-pointer flex"
-            >
-              <Link to={`/rooms/${room.id}`} className="w-full">
-                <button className="p-2">{room.name}</button>
-              </Link>
-            </li>
-          ))}
-        </ul>
+    <div className="flex flex-col items-center h-full w-full">
+      <div className="p-8 flex-0 w-full text-6xl  text-center">
+        <h1 className="">Tiles</h1>
       </div>
+
+      {user ? (
+        <div className="pt-12 w-full">
+          <RoomList rooms={rooms} />
+          <CreateRoom />
+        </div>
+      ) : (
+        <div className="w-full h-full flex flex-col items-center">
+          <LoginCard />
+        </div>
+      )}
     </div>
   );
 }

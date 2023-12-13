@@ -1,30 +1,32 @@
 import express from 'express';
 import { createServer } from 'http';
 import { Server, Socket } from 'socket.io';
-import { PrivateGameState, Room, User } from '../app/src/types';
+import { PrivateGameState, Room, User } from './types';
 import { buildBoardStateForPlayer, determineWinner, newGameState } from './game';
 import { generateSlug } from './helpers/randomWords';
 
-const port = process.env.PORT || 4000;
+const port = process.env.PORT && parseInt(process.env.PORT, 10) || 3000;
 
 const users = [];
 
-const rooms: Room[] = [{
-  id: generateSlug(5),
-  name: 'Room 1',
-  users: [],
-}];
+const rooms: Room[] = [];
 
 console.log(rooms);
 
 (async () => {
   const app = express();
 
+  app.get('/', (_, res) => {
+    return res.send('Hello world');
+  });
+
   const server = createServer(app);
+
+  const CORS_ALLOW_ORIGIN = process.env.CORS_ALLOW_ORIGIN || 'http://localhost:5173';
 
   const io = new Server(server, {
     cors: {
-      origin: "http://localhost:5173",
+      origin: CORS_ALLOW_ORIGIN,
       methods: ["GET", "POST"],
     },
   });
@@ -214,10 +216,44 @@ console.log(rooms);
       checkIfGameOver();
     });
 
+    socket.on('room/create', (data: { name: string }, cb) => {
+      console.log('room/create', data);
+
+      if (!socket.user) {
+        return cb({
+          error: 'Not logged in',
+        });
+      }
+
+      if (!data.name) {
+        return cb({
+          error: 'Name is required',
+        });
+      }
+
+      const generateSlugNotAlreadyUsed = (): string => {
+        const slug = generateSlug(5);
+        if (rooms.some((r) => r.id === slug)) {
+          return generateSlugNotAlreadyUsed();
+        }
+        return slug;
+      }
+
+      const room: Room = {
+        id: generateSlugNotAlreadyUsed(),
+        users: [],
+        name: data.name,
+      };
+
+      rooms.push(room);
+
+      cb(room);
+    });
+
     socket.on('disconnect', () => {
       leaveRoom();
     });
   });
 
-  server.listen(port, () => console.log(`Listening on port ${port}`));
+  server.listen(port, '0.0.0.0', () => console.log(`test Listening at 0.0.0.0:${port}`));
 })();
