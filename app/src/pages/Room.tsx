@@ -2,49 +2,12 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useAuth } from "../providers/AuthProvider";
 import { useWebsocket } from "../providers/WebsocketProvider";
-import { PersonalizedGameState, Room } from "../types";
+import { GameState, Room } from "../types";
 import classNames from "classnames";
 import { BoardCell } from "../components/Game/BoardCell";
 import { UserTroopCell } from "../components/Game/UserTroopCell";
-import { match } from "ts-pattern";
-
-enum Colors {
-  red = "red",
-  blue = "blue",
-  draw = "gray",
-  nuked = "black",
-}
-
-type BoardCell = {
-  value?: string;
-  color?: Colors;
-};
-
-const buildBoardState = (
-  moves: PersonalizedGameState["board"]
-): BoardCell[] => {
-  const newBoard: BoardCell[] = Array.from({ length: 25 }).fill(
-    {}
-  ) as BoardCell[];
-
-  console.log(30, moves);
-
-  for (let i = 0; i < moves.length; i++) {
-    const move = moves[i];
-
-    newBoard[move.index] = {
-      value: move.value,
-      color: match<-1 | -2 | 0 | 1, Colors>(move.owner as -2 | -1 | 0 | 1)
-        .with(-1, () => Colors.draw)
-        .with(-2, () => Colors.nuked)
-        .with(0, () => Colors.red)
-        .with(1, () => Colors.blue)
-        .exhaustive(),
-    };
-  }
-
-  return newBoard;
-};
+import { Board } from "../components/Board/Board";
+import { buildBoardState } from "../components/Board/types";
 
 // Player 1 is red
 // Player 2 is blue
@@ -101,7 +64,7 @@ export default function Page() {
   const color = playerIndex === 0 ? "red" : "blue";
 
   const gameState = roomState?.gameState
-    ? (roomState?.gameState as PersonalizedGameState)
+    ? (roomState?.gameState as GameState)
     : undefined;
 
   // Game has started if there is a game state
@@ -114,21 +77,29 @@ export default function Page() {
   const nukesUsed = allValuesUsed?.filter((v) => v === "n").length;
 
   return (
-    <div className="flex flex-col w-full h-full items-center drop-shadow-lg pt-8">
+    <div className="flex flex-col w-full h-full items-center  pt-8">
       <div className="flex flex-col items-center max-w-fit space-y-4">
         <div className="w-full text-2xl text-center">
           <h1>{roomState?.name}</h1>
         </div>
-        <div
-          className={classNames("p-4 bg-slate-100", {
-            "bg-slate-100": !started,
-          })}
-        >
-          <div
-            className={classNames(
-              "grid grid-cols-5 border-2 border-gray-700 drop-shadow-lg"
-            )}
-          >
+        {playerIndex}
+        <div className={classNames()}>
+          <Players
+            players={roomState?.gameState?.players.map((i) => i.username) || []}
+            turn={
+              roomState?.gameState?.players?.[roomState?.gameState?.turn]
+                .username
+            }
+          />
+
+          <Board
+            board={board}
+            onType={handleValueChange}
+            canSelect={started && playerIndex === gameState?.turn}
+            playerColor={playerIndex ? "blue" : "red"}
+          />
+
+          <div className={classNames("grid grid-cols-5 mt-2")}>
             <UserTroopCell
               color={color}
               value="1"
@@ -190,17 +161,6 @@ export default function Page() {
             />
             <UserTroopCell color="black" value="" />
             <UserTroopCell color={color} value="n" />
-
-            <div className="cell bg-black col-span-5 row-span-1 h-16  flex justify-center items-center text-4xl"></div>
-            {board.map(({ color, value }, index) => (
-              <BoardCell
-                key={index}
-                color={color}
-                value={value}
-                selectable={playerIndex === roomState?.gameState?.turn}
-                onValueChange={(v: string) => handleValueChange(index, v)}
-              />
-            ))}
           </div>
         </div>
         <div className="text-4xl">
@@ -208,34 +168,53 @@ export default function Page() {
             <div>Winner: {["red", "blue"][roomState?.gameState?.winner]}</div>
           )}
         </div>
-        <div className="flex flex-col w-full text-lg">
-          <p className="font-bold text-sm mb-1">Players:</p>
-          <ul className="">
-            {roomState?.users?.map((user, index) => {
-              const playerIndex = roomState?.gameState?.players?.findIndex(
-                (p) => p.username === user.username
-              );
 
-              return (
-                <li
-                  key={user.username}
-                  className={classNames("px-2 py-1 text-gray-800", {
-                    "bg-red-100": playerIndex === 0,
-                    "bg-blue-100": playerIndex === 1,
-                  })}
-                >
-                  <span className="font-extrabold mr-1">{index + 1}</span>
-                  <span>{user.username}</span>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
         <div className="flex flex-col w-full text-sm">
-          <div>Turn: {roomState?.gameState?.turn ? "blue" : "red"}</div>
+          <div>
+            Turn: {roomState?.gameState?.turn}{" "}
+            {roomState?.gameState?.turn !== undefined
+              ? ["red", "blue"][roomState?.gameState?.turn]
+              : ""}
+          </div>
           <div>Players: {roomState?.gameState?.players.length}</div>
         </div>
       </div>
     </div>
   );
 }
+
+export const Players = ({
+  players,
+  turn,
+}: {
+  players: string[];
+  turn?: string;
+}) => {
+  return (
+    <div className="flex w-full justify-stretch items-stretch space-x-1 my-2">
+      {players.map((playerName, index) => {
+        return (
+          <div
+            key={playerName}
+            className={classNames(
+              "font-bold text-white px-2 py-1 rounded-md flex-grow text-center align-baseline",
+              {
+                "bg-red-500": index === 0,
+                "bg-sky-500": index === 1,
+                "bg-green-500": index === 2,
+                "bg-yellow-500": index === 3,
+                "text-2xl py-2": turn === playerName,
+                "text-sm my-2": turn !== playerName,
+              }
+            )}
+            style={{
+              flexBasis: turn === playerName ? "150%" : "75%",
+            }}
+          >
+            {playerName}
+          </div>
+        );
+      })}
+    </div>
+  );
+};

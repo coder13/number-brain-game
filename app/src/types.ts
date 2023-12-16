@@ -3,25 +3,13 @@ export interface Room {
   name: string;
   // All users in the room: players and spectators
   users: User[];
-  gameState?: PrivateGameState | PersonalizedGameState;
+  gameState?: GameState;
 }
 
 export interface User {
   token: string;
   username: string;
   socketId: string;
-}
-
-export interface GameState {
-  type: 'private' | 'personalized';
-  players: User[];
-  turn: number;
-  winner?: number;
-}
-
-export interface PrivateGameState extends GameState {
-  type: 'private';
-  internalMoves: InternalMove[];
 }
 
 export interface Move {
@@ -33,8 +21,10 @@ export interface InternalMove extends Move {
   player: number; // who played it
 }
 
-export interface PersonalizedGameState extends GameState {
-  type: 'personalized'
+export interface GameState {
+  players: User[];
+  turn: number;
+  winner?: number;
   board: {
     index: number;
     owner: number;

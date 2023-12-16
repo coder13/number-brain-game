@@ -1,12 +1,10 @@
 import { CreateRoom } from "../components/CreateRoom";
+import { JoinRoom } from "../components/JoinRoom/JoinRoom";
 import { LoginCard } from "../components/LoginCard";
-import { RoomList } from "../components/RoomList";
 import { useAuth } from "../providers/AuthProvider";
-import { useWebsocket } from "../providers/WebsocketProvider";
 
 export default function Page() {
   const { user } = useAuth();
-  const { rooms } = useWebsocket();
 
   return (
     <div className="flex flex-col items-center h-full w-full">
@@ -15,9 +13,9 @@ export default function Page() {
       </div>
 
       {user ? (
-        <div className="pt-12 w-full">
-          <RoomList rooms={rooms} />
+        <div className="pt-12 w-full space-y-4">
           <CreateRoom />
+          <JoinRoom />
         </div>
       ) : (
         <div className="w-full h-full flex flex-col items-center">

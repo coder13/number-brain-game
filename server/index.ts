@@ -216,6 +216,11 @@ console.log(rooms);
       checkIfGameOver();
     });
 
+    socket.on('doesRoomExist', (roomId, cb) => {
+      const room = rooms.find(r => r.id === roomId);
+      cb(!!room);
+    })
+
     socket.on('room/create', (data: { name: string }, cb) => {
       console.log('room/create', data);
 
