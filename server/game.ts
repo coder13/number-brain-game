@@ -71,6 +71,7 @@ export const buildBoardStateForPlayer = (state: PrivateGameState, player: number
       board.push({
         index: i,
         owner: -1,
+        value: firstMove.value,
       });
       continue;
     }

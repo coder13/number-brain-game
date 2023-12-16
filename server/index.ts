@@ -26,7 +26,7 @@ console.log(rooms);
 
   const io = new Server(server, {
     cors: {
-      origin: CORS_ALLOW_ORIGIN,
+      origin: ['http://localhost:5173', 'http://10.0.0.110:5173', CORS_ALLOW_ORIGIN],
       methods: ["GET", "POST"],
     },
   });
@@ -167,11 +167,12 @@ console.log(rooms);
       const allValuesUsed = gameState?.internalMoves.filter((v) => v.player === player).map((v) => v.value);
 
       // // If we're using a nuke and we're out of nukes
-      if (value === 'n' && allValuesUsed?.length >= 3) {
+      if (value === 'n' && allValuesUsed.filter((i) => i === 'n')?.length >= 3) {
         return cb({
           error: 'Out of nukes',
         });
       } else if (value !== 'n' && allValuesUsed?.includes(value)) {
+        console.log(allValuesUsed);
         return cb({
           error: 'Value already used',
         });
@@ -197,21 +198,25 @@ console.log(rooms);
       // TODO filter board
       socket.to(room.id).emit('state', room);
 
-      const player1SocketId = room.users[0].socketId;
-      const player2SocketId = room.users[1].socketId;
+      const player1SocketId = room.users.find((i) => i.username === gameState.players[0].username)?.socketId;
+      const player2SocketId = room.users.find((i) => i.username === gameState.players[1].username)?.socketId;
 
       const gameStateForPlayer1 = buildBoardStateForPlayer(gameState, 0);
       const gameStateForPlayer2 = buildBoardStateForPlayer(gameState, 1);
 
-      io.to(player1SocketId).emit('state', {
-        ...room,
-        gameState: gameStateForPlayer1,
-      });
+      if (player1SocketId) {
+        io.to(player1SocketId).emit('state', {
+          ...room,
+          gameState: gameStateForPlayer1,
+        });
+      }
 
-      io.to(player2SocketId).emit('state', {
-        ...room,
-        gameState: gameStateForPlayer2,
-      });
+      if (player2SocketId) {
+        io.to(player2SocketId).emit('state', {
+          ...room,
+          gameState: gameStateForPlayer2,
+        });
+      }
 
       checkIfGameOver();
     });
@@ -254,6 +259,24 @@ console.log(rooms);
 
       cb(room);
     });
+
+    socket.on('room/restart', () => {
+      if (!socket.room) {
+        return;
+      }
+
+      const room = rooms.find(r => r.id === socket.room);
+      if (!room || !room.gameState) {
+        return;
+      }
+
+      room.gameState = newGameState({
+        player1: room.gameState?.players[1]!,
+        player2: room.gameState?.players[0]!,
+      });
+
+      io.to(room.id).emit('state', room);
+    })
 
     socket.on('disconnect', () => {
       leaveRoom();

@@ -4,10 +4,10 @@ import { useAuth } from "../providers/AuthProvider";
 import { useWebsocket } from "../providers/WebsocketProvider";
 import { GameState, Room } from "../types";
 import classNames from "classnames";
-import { BoardCell } from "../components/Game/BoardCell";
 import { UserTroopCell } from "../components/Game/UserTroopCell";
 import { Board } from "../components/Board/Board";
 import { buildBoardState } from "../components/Board/types";
+import { LoginCard } from "../components/LoginCard";
 
 // Player 1 is red
 // Player 2 is blue
@@ -19,13 +19,13 @@ export default function Page() {
 
   const [roomState, setRoomState] = useState<Room | undefined>();
 
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+
   const playerIndex = roomState?.gameState?.players?.findIndex(
     (u) => u.username === user?.username
   );
 
   const handleStateUpdate = (state: Room | { error: string }) => {
-    console.log(53, state);
-
     if ("error" in state) {
       console.error(state.error);
       return;
@@ -35,7 +35,7 @@ export default function Page() {
   };
 
   useEffect(() => {
-    if (!socket) {
+    if (!socket || !user) {
       return;
     }
 
@@ -52,13 +52,24 @@ export default function Page() {
     };
   }, [roomId, socket, user]);
 
-  const handleValueChange = (index: number, value: string) => {
+  if (!user) {
+    return (
+      <div className="flex flex-col h-full items-center">
+        <LoginCard />
+      </div>
+    );
+  }
+
+  const handlePlayTile = (index: number, value: string) => {
     if (!["1", "2", "3", "4", "5", "6", "7", "8", "9", "n"].includes(value)) {
       return;
     }
 
-    console.log(74, value);
     socket?.emit("room/move", { index, value }, handleStateUpdate);
+  };
+
+  const handleRestart = () => {
+    socket?.emit("room/restart");
   };
 
   const color = playerIndex === 0 ? "red" : "blue";
@@ -71,18 +82,18 @@ export default function Page() {
   const started = !!gameState;
 
   const board = buildBoardState(gameState?.board || []);
-  console.log(95, gameState?.board, board);
 
   const allValuesUsed = gameState?.valuesUsed;
   const nukesUsed = allValuesUsed?.filter((v) => v === "n").length;
 
   return (
     <div className="flex flex-col w-full h-full items-center  pt-8">
-      <div className="flex flex-col items-center max-w-fit space-y-4">
-        <div className="w-full text-2xl text-center">
-          <h1>{roomState?.name}</h1>
-        </div>
-        {playerIndex}
+      <div className="flex flex-col items-center max-w-fit space-y-4 h-full">
+        {!started && (
+          <div className="text-2xl text-center">
+            Waiting for player 2 to join...
+          </div>
+        )}
         <div className={classNames()}>
           <Players
             players={roomState?.gameState?.players.map((i) => i.username) || []}
@@ -94,89 +105,121 @@ export default function Page() {
 
           <Board
             board={board}
-            onType={handleValueChange}
+            onType={handlePlayTile}
             canSelect={started && playerIndex === gameState?.turn}
             playerColor={playerIndex ? "blue" : "red"}
+            onCellSelect={(i) => setSelectedIndex(i)}
           />
 
-          <div className={classNames("grid grid-cols-5 mt-2")}>
+          <div
+            className={classNames(
+              "grid grid-cols-5 gap-1 bg-slate-200 p-1 mt-4"
+            )}
+          >
             <UserTroopCell
               color={color}
               value="1"
               used={!!allValuesUsed?.includes("1")}
+              onSelected={() => handlePlayTile(selectedIndex, "1")}
             />
             <UserTroopCell
               color={color}
               value="2"
               used={!!allValuesUsed?.includes("2")}
+              onSelected={() => handlePlayTile(selectedIndex, "2")}
             />
             <UserTroopCell
               color={color}
               value="3"
               used={!!allValuesUsed?.includes("3")}
+              onSelected={() => handlePlayTile(selectedIndex, "3")}
             />
             <UserTroopCell color="black" value="" />
             <UserTroopCell
               color={color}
               value="n"
               used={!!nukesUsed && nukesUsed > 0}
+              onSelected={() => handlePlayTile(selectedIndex, "n")}
             />
 
             <UserTroopCell
               color={color}
               value="4"
               used={!!allValuesUsed?.includes("4")}
+              onSelected={() => handlePlayTile(selectedIndex, "4")}
             />
             <UserTroopCell
               color={color}
               value="5"
               used={!!allValuesUsed?.includes("5")}
+              onSelected={() => handlePlayTile(selectedIndex, "5")}
             />
             <UserTroopCell
               color={color}
               value="6"
               used={!!allValuesUsed?.includes("6")}
+              onSelected={() => handlePlayTile(selectedIndex, "6")}
             />
             <UserTroopCell color="black" value="" />
             <UserTroopCell
               color={color}
               value="n"
               used={!!nukesUsed && nukesUsed > 1}
+              onSelected={() => handlePlayTile(selectedIndex, "n")}
             />
 
             <UserTroopCell
               color={color}
               value="7"
               used={!!allValuesUsed?.includes("7")}
+              onSelected={() => handlePlayTile(selectedIndex, "7")}
             />
             <UserTroopCell
               color={color}
               value="8"
               used={!!allValuesUsed?.includes("8")}
+              onSelected={() => handlePlayTile(selectedIndex, "8")}
             />
             <UserTroopCell
               color={color}
               value="9"
               used={!!nukesUsed && nukesUsed > 2}
+              onSelected={() => handlePlayTile(selectedIndex, "9")}
             />
             <UserTroopCell color="black" value="" />
-            <UserTroopCell color={color} value="n" />
+            <UserTroopCell
+              color={color}
+              value="n"
+              onSelected={() => handlePlayTile(selectedIndex, "n")}
+            />
           </div>
         </div>
         <div className="text-4xl">
           {roomState?.gameState?.winner !== undefined && (
-            <div>Winner: {["red", "blue"][roomState?.gameState?.winner]}</div>
+            <>
+              <div>Winner: {["red", "blue"][roomState?.gameState?.winner]}</div>
+              <button className="btn btn-green" onClick={handleRestart}>
+                Play again
+              </button>
+            </>
           )}
         </div>
+        <div className="flex-grow" />
 
-        <div className="flex flex-col w-full text-sm">
+        <div className="flex flex-col w-full text-sm pb-2">
           <div>
             Turn: {roomState?.gameState?.turn}{" "}
             {roomState?.gameState?.turn !== undefined
               ? ["red", "blue"][roomState?.gameState?.turn]
               : ""}
           </div>
-          <div>Players: {roomState?.gameState?.players.length}</div>
+          {roomState?.gameState?.players.length && (
+            <div>Player Count: {roomState?.gameState?.players.length}</div>
+          )}
+          <div>
+            You are player
+            {playerIndex}
+          </div>
         </div>
       </div>
     </div>

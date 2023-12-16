@@ -10,8 +10,8 @@ function App() {
   const { user } = useAuth();
 
   return (
-    <div className="h-screen w-screen flex flex-col items-center">
-      <div className="flex flex-col h-screen w-full max-w-screen-sm rounded-md overflow-y-auto">
+    <div className="h-screen w-screen flex flex-col items-center bg-slate-100">
+      <div className="flex flex-col h-screen w-full max-w-screen-sm rounded-md overflow-y-auto bg-white drop-shadow-lg">
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Home />} />

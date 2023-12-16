@@ -4,10 +4,12 @@ export function UserTroopCell({
   color,
   value,
   used,
+  onSelected,
 }: {
   color: "red" | "blue" | "black";
   value: string;
   used?: boolean;
+  onSelected?: () => void;
 }) {
   return (
     <div
@@ -20,6 +22,7 @@ export function UserTroopCell({
           color: Text_Colors.gray,
         }),
       }}
+      onClick={() => onSelected?.()}
     >
       <span>{value}</span>
     </div>

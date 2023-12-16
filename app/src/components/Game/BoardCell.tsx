@@ -1,5 +1,6 @@
 import classNames from "classnames";
 import { Background_Colors, Text_Colors } from "./colors";
+import { useMediaQuery } from "usehooks-ts";
 
 interface BoardCellProps {
   value?: string;
@@ -23,8 +24,11 @@ export function BoardCell({
   selectable = true,
   onValueChange,
   onCellSelect,
-  borders,
 }: BoardCellProps) {
+  const matches = useMediaQuery("(any-pointer: none)");
+
+  console.log(30, matches);
+
   return (
     <div
       className={classNames(
@@ -32,10 +36,10 @@ export function BoardCell({
         {
           "hover:bg-red-500": selectable && playerColor === "red",
           "hover:bg-sky-500": selectable && playerColor === "blue",
-          "border-b-2": borders.bottom,
-          "border-t-2": borders.top,
-          "border-l-2": borders.left,
-          "border-r-2": borders.right,
+          // "rounded-b-md": !borders.bottom,
+          // "rounded-t-md": !borders.top,
+          // "rounded-l-md": !borders.left,
+          // "rounded-r-md": !borders.right,
         }
       )}
       style={{
@@ -52,12 +56,16 @@ export function BoardCell({
     >
       <input
         type="tel"
-        disabled={!selectable}
-        className="w-full h-full text-2xl text-center bg-inherit focus:outline-none "
+        disabled={!selectable || !!value || color === "black"}
+        className="w-full h-full text-2xl text-center bg-inherit focus:outline-none rounded-md"
         maxLength={1}
         value={value || ""}
         onClick={() => onCellSelect?.()}
-        onChange={(e) => onValueChange?.(e.target.value)}
+        onChange={(e) => onValueChange?.(e.target.value.slice(-1))}
+        readOnly={!matches}
+        onKeyDown={(e) => {
+          onValueChange?.(e.key);
+        }}
       />
     </div>
   );

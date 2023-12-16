@@ -7,7 +7,7 @@ export default function Page() {
   const { user } = useAuth();
 
   return (
-    <div className="flex flex-col items-center h-full w-full">
+    <div className="flex flex-col items-center h-full w-full px-4">
       <div className="p-8 flex-0 w-full text-6xl  text-center">
         <h1 className="">Tiles</h1>
       </div>
