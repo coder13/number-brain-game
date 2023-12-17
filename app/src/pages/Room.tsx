@@ -12,6 +12,8 @@ import { LoginCard } from "../components/LoginCard";
 // Player 1 is red
 // Player 2 is blue
 
+const colorOrder = ["red", "blue", "green", "purple"];
+
 export default function Page() {
   const { roomId } = useParams<{ roomId: string }>();
   const { user } = useAuth();
@@ -89,11 +91,7 @@ export default function Page() {
 
   const color =
     playerIndex !== undefined &&
-    (["red", "blue", "green", "purple"][playerIndex] as
-      | "red"
-      | "blue"
-      | "green"
-      | "purple");
+    (colorOrder[playerIndex] as "red" | "blue" | "green" | "purple");
 
   const gameState = roomState?.gameState
     ? (roomState?.gameState as GameState)
@@ -111,9 +109,12 @@ export default function Page() {
     <div className="flex flex-col w-full h-full items-center  pt-8">
       <div className="flex flex-col items-center max-w-fit space-y-4 h-full">
         {!started && (
-          <div className="text-2xl text-center">
-            Waiting for players to join...
-          </div>
+          <>
+            <div className="text-xl text-center">{roomState?.id}</div>
+            <div className="text-2xl text-center">
+              Waiting for players to join...
+            </div>
+          </>
         )}
         <div className={classNames()}>
           <Players
@@ -223,14 +224,7 @@ export default function Page() {
         <div className="text-4xl">
           {roomState?.gameState?.winner !== undefined && (
             <>
-              <div>
-                Winner:{" "}
-                {
-                  ["red", "blue", "green", "purple"][
-                    roomState?.gameState?.winner
-                  ]
-                }
-              </div>
+              <div>Winner: {colorOrder[roomState?.gameState?.winner]}</div>
               <button className="btn btn-green" onClick={handleRestart}>
                 Play again
               </button>
@@ -239,17 +233,21 @@ export default function Page() {
         </div>
         {!started && (
           <div className="flex flex-col w-full space-y-2">
-            <h3>Users:</h3>
-            <ul>
-              {roomState?.users.map((user) => (
-                <li key={user.username}>{user.username}</li>
-              ))}
-            </ul>
             {!started && (
               <button className="btn btn-green" onClick={handleStart}>
                 Start
               </button>
             )}
+            <h3 className="text-lg font-bold">Users:</h3>
+            <ul className="space-y-2">
+              {roomState?.users.map((user, index) => (
+                <PlayerPill
+                  key={user.socketId}
+                  username={user.username}
+                  color={colorOrder[index]}
+                />
+              ))}
+            </ul>
           </div>
         )}
 
@@ -259,7 +257,7 @@ export default function Page() {
           <div>
             Turn: {roomState?.gameState?.turn}{" "}
             {roomState?.gameState?.turn !== undefined
-              ? ["red", "blue", "green", "purple"][roomState?.gameState?.turn]
+              ? colorOrder[roomState?.gameState?.turn]
               : ""}
           </div>
           {roomState?.gameState?.players.length && (
@@ -287,27 +285,44 @@ export const Players = ({
     <div className="flex w-full justify-stretch items-stretch space-x-1 my-2">
       {players.map((playerName, index) => {
         return (
-          <div
-            key={playerName}
-            className={classNames(
-              "font-bold text-white px-2 py-1 rounded-md flex-grow text-center align-baseline",
-              {
-                "bg-red-500": index === 0,
-                "bg-sky-500": index === 1,
-                "bg-green-500": index === 2,
-                "bg-purple-500": index === 3,
-                "text-2xl py-2": turn === playerName,
-                "text-sm my-2": turn !== playerName,
-              }
-            )}
-            style={{
-              flexBasis: turn === playerName ? "150%" : "75%",
-            }}
-          >
-            {playerName}
-          </div>
+          <PlayerPill
+            username={playerName}
+            turn={turn === playerName}
+            color={["red", "blue", "green", "purple"][index]}
+          />
         );
       })}
+    </div>
+  );
+};
+
+export const PlayerPill = ({
+  username,
+  turn,
+  color,
+}: {
+  username: string;
+  turn?: boolean;
+  color: string;
+}) => {
+  return (
+    <div
+      className={classNames(
+        "font-bold text-white px-2 py-1 rounded-md flex-grow text-center align-baseline",
+        {
+          "bg-red-500": color === "red",
+          "bg-sky-500": color === "blue",
+          "bg-green-500": color === "green",
+          "bg-purple-500": color === "purple",
+          "text-2xl py-2": turn === true,
+          "text-sm my-2": turn === false,
+        }
+      )}
+      style={{
+        flexBasis: turn === true ? "150%" : "75%",
+      }}
+    >
+      {username}
     </div>
   );
 };

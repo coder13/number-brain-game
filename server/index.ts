@@ -237,9 +237,7 @@ const generateSlugNotAlreadyUsed = async (): Promise<string> => {
       cb(!!room);
     })
 
-    socket.on('room/create', async (_, cb) => {
-      console.log('room/create', _);
-
+    socket.on('room/create', async (cb) => {
       if (!socket.user) {
         return cb({
           error: 'Not logged in',
