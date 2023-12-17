@@ -1,11 +1,8 @@
 import { PersonalizedGameState, PrivateGameState, User } from './types';
 
-export const newGameState = ({ player1, player2 }: {
-  player1: User,
-  player2: User,
-}): PrivateGameState => ({
+export const newGameState = (players: User[]): PrivateGameState => ({
   type: 'private',
-  players: [player1, player2],
+  players,
   internalMoves: [],
   turn: 0,
 });
@@ -122,8 +119,11 @@ export const determineWinner = (state: PrivateGameState): number | undefined => 
       return undefined;
     }
 
-    const winner = moves.sort((a, b) => +b.value - +a.value);
-    const winningPlayer = winner[0].player;
+    const sortedMoves = moves.sort((a, b) => +b.value - +a.value);
+    const winningPlayer = sortedMoves[0].player;
+    if (sortedMoves.length === 2) {
+      console.log(moves, sortedMoves)
+    }
 
     winnerCache.set(index, winningPlayer);
     return winningPlayer;
@@ -154,6 +154,11 @@ export const determineWinner = (state: PrivateGameState): number | undefined => 
       i % 5 < 3 && i < 15 &&
       winnerOf(i + 6) === player &&
       winnerOf(i + 12) === player
+    ) {
+      return player;
+    } else if (
+      winnerOf(i + 4) === player &&
+      winnerOf(i + 8) === player
     ) {
       return player;
     }

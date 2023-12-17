@@ -34,15 +34,26 @@ export default function Page() {
     setRoomState(state);
   };
 
+  const handleRoomStateUpdate = (state: Room | { error: string }) => {
+    if ("error" in state) {
+      console.error(state.error);
+      return;
+    }
+
+    setRoomState((prev) => {
+      return prev ? { ...prev, ...state } : state;
+    });
+  };
+
   useEffect(() => {
     if (!socket || !user) {
       return;
     }
 
     socket.on("state", handleStateUpdate);
+    socket.on("roomState", handleRoomStateUpdate);
 
     socket?.emit("room/join", roomId, (state: Room | { error: string }) => {
-      console.log("joined room");
       handleStateUpdate(state);
     });
 
@@ -72,7 +83,17 @@ export default function Page() {
     socket?.emit("room/restart");
   };
 
-  const color = playerIndex === 0 ? "red" : "blue";
+  const handleStart = () => {
+    socket?.emit("room/start");
+  };
+
+  const color =
+    playerIndex !== undefined &&
+    (["red", "blue", "green", "purple"][playerIndex] as
+      | "red"
+      | "blue"
+      | "green"
+      | "purple");
 
   const gameState = roomState?.gameState
     ? (roomState?.gameState as GameState)
@@ -91,7 +112,7 @@ export default function Page() {
       <div className="flex flex-col items-center max-w-fit space-y-4 h-full">
         {!started && (
           <div className="text-2xl text-center">
-            Waiting for player 2 to join...
+            Waiting for players to join...
           </div>
         )}
         <div className={classNames()}>
@@ -103,114 +124,142 @@ export default function Page() {
             }
           />
 
-          <Board
-            board={board}
-            onType={handlePlayTile}
-            canSelect={started && playerIndex === gameState?.turn}
-            playerColor={playerIndex ? "blue" : "red"}
-            onCellSelect={(i) => setSelectedIndex(i)}
-          />
+          {color && (
+            <Board
+              board={board}
+              onType={handlePlayTile}
+              canSelect={started && playerIndex === gameState?.turn}
+              playerColor={color}
+              selectedIndex={selectedIndex}
+              onCellSelect={(i) => setSelectedIndex(i)}
+            />
+          )}
 
-          <div
-            className={classNames(
-              "grid grid-cols-5 gap-1 bg-slate-200 p-1 mt-4"
-            )}
-          >
-            <UserTroopCell
-              color={color}
-              value="1"
-              used={!!allValuesUsed?.includes("1")}
-              onSelected={() => handlePlayTile(selectedIndex, "1")}
-            />
-            <UserTroopCell
-              color={color}
-              value="2"
-              used={!!allValuesUsed?.includes("2")}
-              onSelected={() => handlePlayTile(selectedIndex, "2")}
-            />
-            <UserTroopCell
-              color={color}
-              value="3"
-              used={!!allValuesUsed?.includes("3")}
-              onSelected={() => handlePlayTile(selectedIndex, "3")}
-            />
-            <UserTroopCell color="black" value="" />
-            <UserTroopCell
-              color={color}
-              value="n"
-              used={!!nukesUsed && nukesUsed > 0}
-              onSelected={() => handlePlayTile(selectedIndex, "n")}
-            />
+          {color && (
+            <div
+              className={classNames(
+                "grid grid-cols-5 gap-1 bg-slate-200 p-1 mt-4"
+              )}
+            >
+              <UserTroopCell
+                color={color}
+                value="1"
+                used={!!allValuesUsed?.includes("1")}
+                onSelected={() => handlePlayTile(selectedIndex, "1")}
+              />
+              <UserTroopCell
+                color={color}
+                value="2"
+                used={!!allValuesUsed?.includes("2")}
+                onSelected={() => handlePlayTile(selectedIndex, "2")}
+              />
+              <UserTroopCell
+                color={color}
+                value="3"
+                used={!!allValuesUsed?.includes("3")}
+                onSelected={() => handlePlayTile(selectedIndex, "3")}
+              />
+              <UserTroopCell color="black" value="" />
+              <UserTroopCell
+                color={color}
+                value="n"
+                used={!!nukesUsed && nukesUsed > 0}
+                onSelected={() => handlePlayTile(selectedIndex, "n")}
+              />
 
-            <UserTroopCell
-              color={color}
-              value="4"
-              used={!!allValuesUsed?.includes("4")}
-              onSelected={() => handlePlayTile(selectedIndex, "4")}
-            />
-            <UserTroopCell
-              color={color}
-              value="5"
-              used={!!allValuesUsed?.includes("5")}
-              onSelected={() => handlePlayTile(selectedIndex, "5")}
-            />
-            <UserTroopCell
-              color={color}
-              value="6"
-              used={!!allValuesUsed?.includes("6")}
-              onSelected={() => handlePlayTile(selectedIndex, "6")}
-            />
-            <UserTroopCell color="black" value="" />
-            <UserTroopCell
-              color={color}
-              value="n"
-              used={!!nukesUsed && nukesUsed > 1}
-              onSelected={() => handlePlayTile(selectedIndex, "n")}
-            />
+              <UserTroopCell
+                color={color}
+                value="4"
+                used={!!allValuesUsed?.includes("4")}
+                onSelected={() => handlePlayTile(selectedIndex, "4")}
+              />
+              <UserTroopCell
+                color={color}
+                value="5"
+                used={!!allValuesUsed?.includes("5")}
+                onSelected={() => handlePlayTile(selectedIndex, "5")}
+              />
+              <UserTroopCell
+                color={color}
+                value="6"
+                used={!!allValuesUsed?.includes("6")}
+                onSelected={() => handlePlayTile(selectedIndex, "6")}
+              />
+              <UserTroopCell color="black" value="" />
+              <UserTroopCell
+                color={color}
+                value="n"
+                used={!!nukesUsed && nukesUsed > 1}
+                onSelected={() => handlePlayTile(selectedIndex, "n")}
+              />
 
-            <UserTroopCell
-              color={color}
-              value="7"
-              used={!!allValuesUsed?.includes("7")}
-              onSelected={() => handlePlayTile(selectedIndex, "7")}
-            />
-            <UserTroopCell
-              color={color}
-              value="8"
-              used={!!allValuesUsed?.includes("8")}
-              onSelected={() => handlePlayTile(selectedIndex, "8")}
-            />
-            <UserTroopCell
-              color={color}
-              value="9"
-              used={!!nukesUsed && nukesUsed > 2}
-              onSelected={() => handlePlayTile(selectedIndex, "9")}
-            />
-            <UserTroopCell color="black" value="" />
-            <UserTroopCell
-              color={color}
-              value="n"
-              onSelected={() => handlePlayTile(selectedIndex, "n")}
-            />
-          </div>
+              <UserTroopCell
+                color={color}
+                value="7"
+                used={!!allValuesUsed?.includes("7")}
+                onSelected={() => handlePlayTile(selectedIndex, "7")}
+              />
+              <UserTroopCell
+                color={color}
+                value="8"
+                used={!!allValuesUsed?.includes("8")}
+                onSelected={() => handlePlayTile(selectedIndex, "8")}
+              />
+              <UserTroopCell
+                color={color}
+                value="9"
+                used={!!allValuesUsed?.includes("9")}
+                onSelected={() => handlePlayTile(selectedIndex, "9")}
+              />
+              <UserTroopCell color="black" value="" />
+              <UserTroopCell
+                color={color}
+                value="n"
+                onSelected={() => handlePlayTile(selectedIndex, "n")}
+              />
+            </div>
+          )}
         </div>
         <div className="text-4xl">
           {roomState?.gameState?.winner !== undefined && (
             <>
-              <div>Winner: {["red", "blue"][roomState?.gameState?.winner]}</div>
+              <div>
+                Winner:{" "}
+                {
+                  ["red", "blue", "green", "purple"][
+                    roomState?.gameState?.winner
+                  ]
+                }
+              </div>
               <button className="btn btn-green" onClick={handleRestart}>
                 Play again
               </button>
             </>
           )}
         </div>
+        {!started && (
+          <div className="flex flex-col w-full space-y-2">
+            <h3>Users:</h3>
+            <ul>
+              {roomState?.users.map((user) => (
+                <li key={user.username}>{user.username}</li>
+              ))}
+            </ul>
+            {!started && (
+              <button className="btn btn-green" onClick={handleStart}>
+                Start
+              </button>
+            )}
+          </div>
+        )}
+
         <div className="flex-grow" />
 
         <div className="flex flex-col w-full text-sm pb-2">
           <div>
             Turn: {roomState?.gameState?.turn}{" "}
             {roomState?.gameState?.turn !== undefined
-              ? ["red", "blue"][roomState?.gameState?.turn]
+              ? ["red", "blue", "green", "purple"][roomState?.gameState?.turn]
               : ""}
           </div>
           {roomState?.gameState?.players.length && (
@@ -220,6 +269,7 @@ export default function Page() {
             You are player
             {playerIndex}
           </div>
+          Index: {selectedIndex}
         </div>
       </div>
     </div>
@@ -245,7 +295,7 @@ export const Players = ({
                 "bg-red-500": index === 0,
                 "bg-sky-500": index === 1,
                 "bg-green-500": index === 2,
-                "bg-yellow-500": index === 3,
+                "bg-purple-500": index === 3,
                 "text-2xl py-2": turn === playerName,
                 "text-sm my-2": turn !== playerName,
               }

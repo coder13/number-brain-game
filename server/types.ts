@@ -1,6 +1,5 @@
 export interface Room {
   id: string;
-  name: string;
   // All users in the room: players and spectators
   users: User[];
   gameState?: PrivateGameState | PersonalizedGameState;

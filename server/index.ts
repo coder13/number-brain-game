@@ -4,16 +4,25 @@ import { Server, Socket } from 'socket.io';
 import { PrivateGameState, Room, User } from './types';
 import { buildBoardStateForPlayer, determineWinner, newGameState } from './game';
 import { generateSlug } from './helpers/randomWords';
+import { RoomsNamespace, getRoom, setRoom } from './controllers/rooms';
+import { redis } from './redis';
 
 const port = process.env.PORT && parseInt(process.env.PORT, 10) || 3000;
 
 const users = [];
 
-const rooms: Room[] = [];
-
-console.log(rooms);
+const generateSlugNotAlreadyUsed = async (): Promise<string> => {
+  const slug = generateSlug(5);
+  const exists = await redis.exists(`${RoomsNamespace}:${slug}`);
+  if (exists) {
+    return await generateSlugNotAlreadyUsed();
+  }
+  return slug;
+}
 
 (async () => {
+  // await redis.connect().then(() => console.log('Connected to redis'));
+
   const app = express();
 
   app.get('/', (_, res) => {
@@ -31,6 +40,7 @@ console.log(rooms);
     },
   });
 
+
   io.on('connection', (socket: Socket & {
     user?: User
     room?: string;
@@ -41,8 +51,6 @@ console.log(rooms);
       token: string;
       username: string;
     }, cb) => {
-      console.log('login', { token, username });
-
       const user: User = {
         token,
         username,
@@ -54,16 +62,24 @@ console.log(rooms);
       users.push(user);
 
       cb(user);
-
-      socket.emit('rooms', { rooms });
     });
 
-    socket.on('room/join', (roomId: string, cb) => {
-      const room = rooms.find(r => r.id === roomId);
+    socket.on('room/join', async (roomId: string, cb) => {
+      let room = await getRoom(roomId);
+
       if (!room) {
-        return cb({
-          error: 'Room not found',
-        });
+        // Create room if not exists
+        socket.room = roomId;
+
+        room = {
+          id: roomId,
+          users: [],
+        };
+
+        await setRoom(room);
+        console.log(83, 'Created room', { roomId, user: socket.user });
+      } else {
+        console.log(socket.id, 'Room exists', room.id);
       }
 
       socket.join(roomId);
@@ -71,40 +87,43 @@ console.log(rooms);
       // join the socket to the room
       socket.room = roomId;
 
-      if (socket.user) {
-        if (room.users.some(({ username }) => username === socket.user?.username)) {
-          return cb({
-            error: 'Joined but already in the room',
-          });
-        }
-
+      if (socket.user && !room.users.some(({ username }) => username === socket.user?.username)) {
         // add the user to the room
         room.users.push(socket.user);
       }
 
-      if (room.users.length === 2 && !room.gameState) {
-        room.gameState = newGameState({
-          player1: room.users[0],
-          player2: room.users[1],
+      await setRoom(room);
+
+      // if game is ongoing, send the game state to the player
+      if (room.gameState && room.gameState?.players.some(({ username }) => username === socket.user?.username)) {
+        const gameState = room.gameState as PrivateGameState;
+        // send the personalized game state to the player
+        const playerIndex = gameState.players.findIndex(({ username }) => username === socket.user?.username);
+        const boardState = buildBoardStateForPlayer(gameState, playerIndex);
+
+        cb({
+          ...room,
+          gameState: boardState,
         });
-        console.log('Game started', room.gameState)
-        socket.broadcast.to(roomId).emit('room/started');
+      } else {
+        cb(room);
       }
 
-      cb(room);
-
-      console.log('User joined room', { roomId, user: socket.user });
+      console.log('User joined room', { roomId, user: socket.user?.username });
 
       // send the updated room to the everyone
-      socket.broadcast.to(roomId).emit('state', room);
+      socket.broadcast.to(roomId).emit('roomState', {
+        id: room.id,
+        users: room.users,
+      });
     });
 
-    const leaveRoom = () => {
+    const leaveRoom = async () => {
       if (!socket.room) {
         return;
       }
 
-      const room = rooms.find(r => r.id === socket.room);
+      const room = await getRoom(socket.room);
       if (!room) {
         return;
       }
@@ -114,18 +133,19 @@ console.log(rooms);
 
       room.users = room.users.filter(({ username }) => username !== socket.user?.username);
 
-      socket.broadcast.to(room.id).emit('state', room);
+      await setRoom(room);
+
+      socket.broadcast.to(room.id).emit('roomState', {
+        id: room.id,
+        users: room.users,
+      });
     }
 
     socket.on('room/leave', () => {
       leaveRoom();
     });
 
-    function checkIfGameOver() {
-
-    }
-
-    socket.on('room/move', (move: { index: number, value: string }, cb) => {
+    socket.on('room/move', async (move: { index: number, value: string }, cb) => {
       console.log('room/move', move);
 
       if (!socket.user || !socket.room) {
@@ -134,7 +154,7 @@ console.log(rooms);
         });
       }
 
-      const room = rooms.find(r => r.id === socket.room);
+      const room = await getRoom(socket.room);
       if (!room) {
         return cb({
           error: 'Room not found',
@@ -172,7 +192,6 @@ console.log(rooms);
           error: 'Out of nukes',
         });
       } else if (value !== 'n' && allValuesUsed?.includes(value)) {
-        console.log(allValuesUsed);
         return cb({
           error: 'Value already used',
         });
@@ -191,43 +210,35 @@ console.log(rooms);
       }
 
       gameState.internalMoves.push({ index, value, player });
-      gameState.turn = (gameState.turn + 1) % 2;
+      gameState.turn = (gameState.turn + 1) % gameState.players.length;
       gameState.winner = determineWinner(gameState);
-      console.log(gameState.winner);
+      console.log({ winner: gameState.winner });
+
+      await setRoom(room);
 
       // TODO filter board
       socket.to(room.id).emit('state', room);
 
-      const player1SocketId = room.users.find((i) => i.username === gameState.players[0].username)?.socketId;
-      const player2SocketId = room.users.find((i) => i.username === gameState.players[1].username)?.socketId;
-
-      const gameStateForPlayer1 = buildBoardStateForPlayer(gameState, 0);
-      const gameStateForPlayer2 = buildBoardStateForPlayer(gameState, 1);
-
-      if (player1SocketId) {
-        io.to(player1SocketId).emit('state', {
-          ...room,
-          gameState: gameStateForPlayer1,
-        });
-      }
-
-      if (player2SocketId) {
-        io.to(player2SocketId).emit('state', {
-          ...room,
-          gameState: gameStateForPlayer2,
-        });
-      }
-
-      checkIfGameOver();
+      gameState.players.forEach((p) => {
+        const socketId = room.users.find((i) => i.username === p.username)?.socketId;
+        const playerIndex = gameState.players.findIndex((i) => i.username === p.username);
+        const boardState = buildBoardStateForPlayer(gameState, playerIndex);
+        if (socketId) {
+          io.to(socketId).emit('state', {
+            ...room,
+            gameState: boardState,
+          });
+        }
+      });
     });
 
-    socket.on('doesRoomExist', (roomId, cb) => {
-      const room = rooms.find(r => r.id === roomId);
+    socket.on('doesRoomExist', async (roomId, cb) => {
+      const room = await getRoom(roomId);
       cb(!!room);
     })
 
-    socket.on('room/create', (data: { name: string }, cb) => {
-      console.log('room/create', data);
+    socket.on('room/create', async (_, cb) => {
+      console.log('room/create', _);
 
       if (!socket.user) {
         return cb({
@@ -235,45 +246,48 @@ console.log(rooms);
         });
       }
 
-      if (!data.name) {
-        return cb({
-          error: 'Name is required',
-        });
-      }
-
-      const generateSlugNotAlreadyUsed = (): string => {
-        const slug = generateSlug(5);
-        if (rooms.some((r) => r.id === slug)) {
-          return generateSlugNotAlreadyUsed();
-        }
-        return slug;
-      }
-
       const room: Room = {
-        id: generateSlugNotAlreadyUsed(),
+        id: await generateSlugNotAlreadyUsed(),
         users: [],
-        name: data.name,
       };
 
-      rooms.push(room);
+      await setRoom(room);
 
       cb(room);
     });
 
-    socket.on('room/restart', () => {
+    socket.on('room/start', async () => {
       if (!socket.room) {
         return;
       }
 
-      const room = rooms.find(r => r.id === socket.room);
+      const room = await getRoom(socket.room);
+      if (!room || room.gameState) {
+        return;
+      }
+
+      if (room.users.length < 2) {
+        return;
+      }
+
+      room.gameState = newGameState(room.users);
+      await setRoom(room);
+
+      io.to(room.id).emit('state', room);
+    });
+
+    socket.on('room/restart', async () => {
+      if (!socket.room) {
+        return;
+      }
+
+      const room = await getRoom(socket.room);
       if (!room || !room.gameState) {
         return;
       }
 
-      room.gameState = newGameState({
-        player1: room.gameState?.players[1]!,
-        player2: room.gameState?.players[0]!,
-      });
+      room.gameState = newGameState(room.users);
+      await setRoom(room);
 
       io.to(room.id).emit('state', room);
     })

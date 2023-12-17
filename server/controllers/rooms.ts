@@ -1,12 +1,24 @@
 import { redis } from '../redis';
+import { Room } from '../types';
 
-const RoomsNamespace = 'rooms';
+export const RoomsNamespace = 'rooms';
 
-export const createRoom = async (
-  data: { name: string, id: string }
+export const setRoom = async (
+  data: Room
 ) => {
-  redis.set(`${RoomsNamespace}:${data.id}`, JSON.stringify(data));
+  await redis.set(`${RoomsNamespace}:${data.id}`, JSON.stringify(data));
 };
+
+export const getRoom = async (
+  id: string
+): Promise<Room | null> => {
+  const room = await redis.get(`${RoomsNamespace}:${id}`);
+  if (!room) {
+    return null;
+  }
+
+  return JSON.parse(room);
+}
 
 export const deleteRoom = async () => { };
 

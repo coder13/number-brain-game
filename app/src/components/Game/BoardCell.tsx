@@ -15,6 +15,7 @@ interface BoardCellProps {
     right: boolean;
   };
   playerColor: string;
+  selected?: boolean;
 }
 
 export function BoardCell({
@@ -24,22 +25,25 @@ export function BoardCell({
   selectable = true,
   onValueChange,
   onCellSelect,
+  selected,
 }: BoardCellProps) {
   const matches = useMediaQuery("(any-pointer: none)");
-
-  console.log(30, matches);
 
   return (
     <div
       className={classNames(
-        "bg-inherit col-span-1 row-span-1 h-16 w-16 flex justify-center items-center text-4x border-gray-400",
+        "bg-gray-300 border-gray-300 col-span-1 row-span-1 h-16 w-16 flex justify-center items-center text-4x border-4",
         {
-          "hover:bg-red-500": selectable && playerColor === "red",
-          "hover:bg-sky-500": selectable && playerColor === "blue",
-          // "rounded-b-md": !borders.bottom,
-          // "rounded-t-md": !borders.top,
-          // "rounded-l-md": !borders.left,
-          // "rounded-r-md": !borders.right,
+          ...(selectable && {
+            "hover:border-red-500": selectable && playerColor === "red",
+            "hover:border-sky-500": selectable && playerColor === "blue",
+            "hover:border-green-500": selectable && playerColor === "green",
+            "hover:border-purple-500": selectable && playerColor === "purple",
+            "border-red-500": playerColor === "red" && selected,
+            "border-sky-500": playerColor === "blue" && selected,
+            "border-green-500": playerColor === "green" && selected,
+            "border-purple-500": playerColor === "purple" && selected,
+          }),
         }
       )}
       style={{

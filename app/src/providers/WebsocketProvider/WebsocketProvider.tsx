@@ -14,32 +14,23 @@ export function WebsocketProvider({ children }: WebsocketProviderProps) {
   });
   const [rooms, setRooms] = useState<Room[]>([]);
 
-  // useEffect(() => {
-  //   if (!token) {
-  //     const _token = Randomstring.generate(32);
-  //     localStorage.setItem("token", _token);
-  //     setToken(_token);
-  //   }
-  // }, [token]);
-
   useEffect(() => {
-    console.log(14);
-
     const _socket = io(import.meta.env.VITE_WS_URL as string);
 
     _socket.connect();
 
     // client-side
     _socket.on("connect", () => {
-      console.log(_socket.id);
-      setSocket(_socket);
+      console.log("connect", _socket.id);
 
       setStatus({ connected: true, id: _socket.id });
+      setSocket(_socket);
     });
 
     _socket.on("disconnect", () => {
-      console.log(_socket.id);
+      console.log("disconnect", _socket.id);
       setStatus({ connected: false, id: _socket.id });
+      setSocket(null);
     });
 
     _socket.on("logged_in", (data) => {
@@ -55,19 +46,6 @@ export function WebsocketProvider({ children }: WebsocketProviderProps) {
       setSocket(null);
     };
   }, []);
-
-  // const login = useCallback(
-  //   (username: string) => {
-  //     if (!socket) {
-  //       return;
-  //     }
-
-  //     // socket.emit("login", { username }, (data: { username: string }) => {
-  //     //   console.log("logged in", data);
-  //     // });
-  //   },
-  //   [socket]
-  // );
 
   return (
     <WebsocketContext.Provider value={{ socket, status, rooms }}>

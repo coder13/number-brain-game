@@ -8,7 +8,6 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   const login = useCallback(
     (username: string) => {
-      console.log(11, socket);
       socket?.emit("login", { username }, (data: User) => {
         setUser(data);
         localStorage.setItem("username", data.username);

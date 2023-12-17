@@ -15,7 +15,6 @@ export function CreateRoom() {
       return;
     }
 
-    console.log(13);
     socket?.emit(
       "room/create",
       { name: roomName },
