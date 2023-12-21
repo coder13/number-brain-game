@@ -23,21 +23,21 @@ export interface PrivateGameState extends GameState {
   internalMoves: InternalMove[];
 }
 
+export interface PersonalizedGameState extends GameState {
+  type: 'personalized'
+  moves: PublicMove[];
+}
+
 export interface Move {
   index: number;
-  value: string;
+  value?: string;
+  player: number;
 }
 
 export interface InternalMove extends Move {
-  player: number; // who played it
+  value: string;
 }
 
-export interface PersonalizedGameState extends GameState {
-  type: 'personalized'
-  board: {
-    index: number;
-    owner: number;
-    value?: string;
-  }[];
-  valuesUsed: string[];
+export interface PublicMove extends Move {
+  pos: number;
 }

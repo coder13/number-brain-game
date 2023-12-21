@@ -1,4 +1,4 @@
-import { PersonalizedGameState, PrivateGameState, User } from './types';
+import { InternalMove, PersonalizedGameState, PrivateGameState, PublicMove, User } from './types';
 
 export const newGameState = (players: User[]): PrivateGameState => ({
   type: 'private',
@@ -14,92 +14,46 @@ export const newGameState = (players: User[]): PrivateGameState => ({
  * 
  */
 export const buildBoardStateForPlayer = (state: PrivateGameState, player: number): PersonalizedGameState => {
-  if (player < 0) { // spectator
-    return {
-      type: 'personalized',
-      board: [],
-      players: state.players,
-      turn: state.turn,
-      valuesUsed: [],
-      winner: state.winner,
-    }
-  }
-
-  const allValuesUsed = state.internalMoves.filter((v) => v.player === player).map((v) => v.value);
-
-  const board = [];
+  let moves: PublicMove[] = [];
   for (let i = 0; i < 25; i++) {
-    const moves = state.internalMoves.filter((v) => v.index === i);
+    let internalMovesForIndex = state.internalMoves.filter((v) => v.index === i).map((v, index) => ({ ...v, when: index }));
 
-    if (!moves.length) {
+    if (!internalMovesForIndex.length) {
       continue;
     }
 
-    if (moves.some((m) => m.value === 'n')) {
-      board.push({
-        index: i,
-        owner: -2,
-      });
-      continue;
-    }
+    // We can use localeCompare since numbers are sort before 'n'
+    // Returns sortedMoves with rank of the move with ties
+    const sortedMoves = [...internalMovesForIndex].sort((a, b) => a.value.localeCompare(b.value));
 
-    const firstMove = moves[0];
-    if (moves.length === 1 && firstMove.player === player) {
-      // they get to know the value because it's their's
-      board.push({
-        index: i,
-        owner: player,
-        value: firstMove.value,
-      });
-      continue;
-    } else if (moves.length === 1 && firstMove.player !== player) {
-      // They get to know who played it but not the value
-      board.push({
-        index: i,
-        owner: firstMove.player,
-      });
-      continue;
-    }
+    const internalMovesWithRank = sortedMoves.reduce((acc, v) => {
+      const lastItem = acc[acc.length - 1];
+      const lastItemPos = lastItem?.pos ?? -1;
 
-    const secondMove = moves[1];
+      return [
+        ...acc,
+        {
+          ...v,
+          pos: lastItem?.value === v.value ? lastItemPos : lastItemPos + 1,
+        }
+      ]
+    }, [] as (InternalMove & { when: number; pos: number })[]).sort((a, b) => a.when - b.when);
 
-    const draw = firstMove.value === secondMove.value;
-    if (draw) {
-      board.push({
-        index: i,
-        owner: -1,
-        value: firstMove.value,
-      });
-      continue;
-    }
-
-    const winningMove = secondMove.value > firstMove.value ? secondMove : firstMove;
-
-    const playersMove = moves.find((m) => m.player === player);
-
-    if (winningMove.player === player) {
-      board.push({
-        index: i,
-        owner: player,
-        value: winningMove.value,
-      });
-      continue;
-    } else {
-      board.push({
-        index: i,
-        owner: winningMove.player,
-        value: playersMove?.value,
-      });
-      continue;
-    }
+    moves = [...moves, ...internalMovesWithRank.map((m) => {
+      return {
+        index: m.index,
+        player: m.player,
+        pos: m.pos,
+        value: m.player === player || m.value === 'n' || state.winner !== undefined ? m.value : undefined,
+      }
+    })];
   }
 
   return {
     type: 'personalized',
-    board,
+    moves,
     players: state.players,
     turn: state.turn,
-    valuesUsed: allValuesUsed,
     winner: state.winner,
   }
 }

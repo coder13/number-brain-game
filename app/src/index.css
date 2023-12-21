@@ -2,11 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: "sourceSans3";
+  src: url("@/fonts/SourceSans3-Regular.ttf") format("ttf");
+  font-weight: normal;
+  font-style: normal;
+}
+
 body {
   padding: none;
   margin: none;
   width: 100vw;
   height: 100vh;
+  font-family: "sourceSans3";
 }
 
 /* Chrome, Safari, Edge, Opera */

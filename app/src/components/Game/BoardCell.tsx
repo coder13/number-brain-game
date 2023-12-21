@@ -1,76 +1,77 @@
 import classNames from "classnames";
-import { Background_Colors, Text_Colors } from "./colors";
-import { useMediaQuery } from "usehooks-ts";
+// import { Background_Colors, Text_Colors } from "./colors";
+import { Tile as TileType } from "../Board/types";
+import { useState } from "react";
+import { Tile, TileProps } from "../elements/Tile/Tile";
+import { Colors } from "../elements/Tile/types";
+import { Background_Colors } from "./colors";
 
 interface BoardCellProps {
-  value?: string;
-  color?: string;
+  tiles: TileType[];
   selectable?: boolean;
   onValueChange?: (value: string) => void;
   onCellSelect?: () => void;
-  borders: {
-    bottom: boolean;
-    top: boolean;
-    left: boolean;
-    right: boolean;
-  };
-  playerColor: string;
+  // borders: {
+  //   bottom: boolean;
+  //   top: boolean;
+  //   left: boolean;
+  //   right: boolean;
+  // };
+  playerColor: Colors;
   selected?: boolean;
 }
 
 export function BoardCell({
-  value,
-  color,
+  tiles,
   playerColor,
   selectable = true,
-  onValueChange,
   onCellSelect,
   selected,
 }: BoardCellProps) {
-  const matches = useMediaQuery("(any-pointer: none)");
-
+  const [hover, setHover] = useState(false);
+  console.log(selectable, selected, playerColor);
   return (
     <div
       className={classNames(
-        "bg-gray-300 border-gray-300 col-span-1 row-span-1 h-16 w-16 flex justify-center items-center text-4x border-4",
-        {
-          ...(selectable && {
-            "hover:border-red-500": selectable && playerColor === "red",
-            "hover:border-sky-500": selectable && playerColor === "blue",
-            "hover:border-green-500": selectable && playerColor === "green",
-            "hover:border-purple-500": selectable && playerColor === "purple",
-            "border-red-500": playerColor === "red" && selected,
-            "border-sky-500": playerColor === "blue" && selected,
-            "border-green-500": playerColor === "green" && selected,
-            "border-purple-500": playerColor === "purple" && selected,
-          }),
-        }
+        "flex justify-center items-center text-4x h-16 w-16 group border-4 border-white"
       )}
       style={{
-        ...(color && {
-          backgroundColor: color
-            ? Background_Colors[color as keyof typeof Background_Colors]
-            : "black",
-          color: color
-            ? Text_Colors[color as keyof typeof Text_Colors]
-            : "black",
-          border: "none",
+        ...(selected && {
+          border: "4px solid",
+          borderColor: Background_Colors[playerColor],
         }),
       }}
+      onClick={onCellSelect}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
     >
-      <input
-        type="tel"
-        disabled={!selectable || !!value || color === "black"}
-        className="w-full h-full text-2xl text-center bg-inherit focus:outline-none rounded-md"
-        maxLength={1}
-        value={value || ""}
-        onClick={() => onCellSelect?.()}
-        onChange={(e) => onValueChange?.(e.target.value.slice(-1))}
-        readOnly={!matches}
-        onKeyDown={(e) => {
-          onValueChange?.(e.key);
-        }}
-      />
+      {tiles.map(({ pos, colorsPlayed, value }) => {
+        return (
+          <Tile
+            className={classNames(
+              "absolute group transform w-16 h-16 transition duration-75",
+              {
+                "rotate-0": pos === 0,
+                "rotate-15": pos === 1,
+                "rotate-30": pos === 2,
+                "rotate-45": pos === 3,
+              }
+            )}
+            style={{
+              ...(hover && {
+                transform: `translateX(${pos * 3}rem) translateY(-${
+                  pos * 2
+                }rem) rotate(${pos * 15}deg)`,
+                zIndex: pos * 2,
+              }),
+            }}
+            key={pos}
+            colors={colorsPlayed}
+            value={value as TileProps["value"]}
+            nuke={value === "n"}
+          />
+        );
+      })}
     </div>
   );
 }

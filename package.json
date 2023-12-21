@@ -1,0 +1,14 @@
+{
+  "name": "tiles",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:coder13/number-brain-game.git",
+  "author": "Cailyn Hoover <choover11@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "dev": "concurrently \"cd app && yarn dev --host\" \"cd server && yarn dev\""
+  },
+  "dependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

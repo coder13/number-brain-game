@@ -1,6 +1,5 @@
 export interface Room {
   id: string;
-  name: string;
   // All users in the room: players and spectators
   users: User[];
   gameState?: GameState;
@@ -12,23 +11,24 @@ export interface User {
   socketId: string;
 }
 
-export interface Move {
-  index: number;
-  value: string;
-}
-
-export interface InternalMove extends Move {
-  player: number; // who played it
-}
-
 export interface GameState {
+  type: 'personalized'
+  moves: PublicMove[];
   players: User[];
   turn: number;
   winner?: number;
-  board: {
-    index: number;
-    owner: number;
-    value?: string;
-  }[];
-  valuesUsed: string[];
+}
+
+export interface Move {
+  index: number;
+  value?: string;
+  player: number;
+}
+
+export interface InternalMove extends Move {
+  value: string;
+}
+
+export interface PublicMove extends Move {
+  pos: number;
 }

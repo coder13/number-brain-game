@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useAuth } from "../providers/AuthProvider";
 import { useWebsocket } from "../providers/WebsocketProvider";
@@ -6,11 +6,8 @@ import { GameState, Room } from "../types";
 import classNames from "classnames";
 import { UserTroopCell } from "../components/Game/UserTroopCell";
 import { Board } from "../components/Board/Board";
-import { buildBoardState } from "../components/Board/types";
+import { buildBoardState } from "../components/Board/util";
 import { LoginCard } from "../components/LoginCard";
-
-// Player 1 is red
-// Player 2 is blue
 
 const colorOrder = ["red", "blue", "green", "purple"];
 
@@ -47,6 +44,27 @@ export default function Page() {
     });
   };
 
+  const handlePlayTile = useCallback(
+    (index: number, value: string) => {
+      if (!["1", "2", "3", "4", "5", "6", "7", "8", "9", "n"].includes(value)) {
+        return;
+        3;
+      }
+
+      socket?.emit("room/move", { index, value }, handleStateUpdate);
+    },
+    [socket]
+  );
+
+  const handleKeyPress = useCallback(
+    (e: globalThis.KeyboardEvent) => {
+      if (["1", "2", "3", "4", "5", "6", "7", "8", "9", "n"].includes(e.key)) {
+        handlePlayTile(selectedIndex, e.key);
+      }
+    },
+    [handlePlayTile, selectedIndex]
+  );
+
   useEffect(() => {
     if (!socket || !user) {
       return;
@@ -59,11 +77,13 @@ export default function Page() {
       handleStateUpdate(state);
     });
 
+    window.addEventListener("keypress", handleKeyPress);
+
     return () => {
       socket?.off("state");
       socket?.emit("room/leave", roomId);
     };
-  }, [roomId, socket, user]);
+  }, [handleKeyPress, roomId, socket, user]);
 
   if (!user) {
     return (
@@ -72,14 +92,6 @@ export default function Page() {
       </div>
     );
   }
-
-  const handlePlayTile = (index: number, value: string) => {
-    if (!["1", "2", "3", "4", "5", "6", "7", "8", "9", "n"].includes(value)) {
-      return;
-    }
-
-    socket?.emit("room/move", { index, value }, handleStateUpdate);
-  };
 
   const handleRestart = () => {
     socket?.emit("room/restart");
@@ -100,9 +112,12 @@ export default function Page() {
   // Game has started if there is a game state
   const started = !!gameState;
 
-  const board = buildBoardState(gameState?.board || []);
+  const board = buildBoardState(gameState?.moves || []);
 
-  const allValuesUsed = gameState?.valuesUsed;
+  const allValuesUsed =
+    gameState?.moves
+      ?.filter((m) => m.player === playerIndex)
+      ?.map((m) => m.value) || [];
   const nukesUsed = allValuesUsed?.filter((v) => v === "n").length;
 
   return (
@@ -135,7 +150,6 @@ export default function Page() {
               onCellSelect={(i) => setSelectedIndex(i)}
             />
           )}
-
           {color && (
             <div
               className={classNames(
