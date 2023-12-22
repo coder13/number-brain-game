@@ -1,10 +1,10 @@
 import classNames from "classnames";
 // import { Background_Colors, Text_Colors } from "./colors";
-import { Tile as TileType } from "../Board/types";
+import { Tile as TileType } from "./types";
 import { useState } from "react";
 import { Tile, TileProps } from "../elements/Tile/Tile";
 import { Colors } from "../elements/Tile/types";
-import { Background_Colors } from "./colors";
+import { Background_Colors } from "../Game/colors";
 
 interface BoardCellProps {
   tiles: TileType[];

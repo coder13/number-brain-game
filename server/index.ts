@@ -286,6 +286,9 @@ const generateSlugNotAlreadyUsed = async (): Promise<string> => {
       }
 
       room.gameState = newGameState(room.users);
+
+      room.gameState.players.reverse();
+
       await setRoom(room).then(() => {
         io.to(room.id).emit('state', room);
       });

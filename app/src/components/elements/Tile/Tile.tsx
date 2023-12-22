@@ -1,6 +1,6 @@
 import { ReactNode, SVGProps } from "react";
 import { Number } from "../Number";
-import { Blue, Green, Red, Yellow } from "./tiles";
+import { Blue, Green, Red, Yellow, Gray } from "./tiles";
 import { Nuke } from "./Nuke";
 import { Colors } from "./types";
 import { Tie } from "./Tie";
@@ -10,6 +10,7 @@ const byColor: Record<string, ReactNode> = {
   blue: Blue,
   green: Green,
   yellow: Yellow,
+  gray: Gray,
 };
 
 export interface TileProps extends SVGProps<SVGSVGElement> {

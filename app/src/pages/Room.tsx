@@ -4,11 +4,12 @@ import { useAuth } from "../providers/AuthProvider";
 import { useWebsocket } from "../providers/WebsocketProvider";
 import { GameState, Room } from "../types";
 import classNames from "classnames";
-import { UserTroopCell } from "../components/Game/UserTroopCell";
+import { UserTroopCell } from "../components/Inventory/InventoryCell";
 import { Board } from "../components/Board/Board";
 import { buildBoardState } from "../components/Board/util";
 import { LoginCard } from "../components/LoginCard";
 import { Colors } from "../components/elements/Tile/types";
+import { Inventory } from "../components/Inventory/Inventory";
 
 const colorOrder: Colors[] = ["red", "blue", "green", "yellow"];
 
@@ -124,8 +125,10 @@ export default function Page() {
   const allValuesUsed =
     gameState?.moves
       ?.filter((m) => m.player === playerIndex)
-      ?.map((m) => m.value) || [];
+      ?.map((m) => m.value as string) || [];
   const nukesUsed = allValuesUsed?.filter((v) => v === "n").length;
+
+  console.log(130);
 
   return (
     <div className="flex flex-col w-full h-full items-center  pt-8">
@@ -162,89 +165,14 @@ export default function Page() {
             />
           )}
           {color && (
-            <div
-              className={classNames(
-                "grid grid-cols-5 gap-1 bg-slate-200 p-1 mt-4"
-              )}
-            >
-              <UserTroopCell
-                color={color}
-                value="1"
-                used={!!allValuesUsed?.includes("1")}
-                onSelected={() => handlePlayTile(selectedIndex, "1")}
-              />
-              <UserTroopCell
-                color={color}
-                value="2"
-                used={!!allValuesUsed?.includes("2")}
-                onSelected={() => handlePlayTile(selectedIndex, "2")}
-              />
-              <UserTroopCell
-                color={color}
-                value="3"
-                used={!!allValuesUsed?.includes("3")}
-                onSelected={() => handlePlayTile(selectedIndex, "3")}
-              />
-              <UserTroopCell color="black" value="" />
-              <UserTroopCell
-                color={color}
-                value="n"
-                used={!!nukesUsed && nukesUsed > 0}
-                onSelected={() => handlePlayTile(selectedIndex, "n")}
-              />
-
-              <UserTroopCell
-                color={color}
-                value="4"
-                used={!!allValuesUsed?.includes("4")}
-                onSelected={() => handlePlayTile(selectedIndex, "4")}
-              />
-              <UserTroopCell
-                color={color}
-                value="5"
-                used={!!allValuesUsed?.includes("5")}
-                onSelected={() => handlePlayTile(selectedIndex, "5")}
-              />
-              <UserTroopCell
-                color={color}
-                value="6"
-                used={!!allValuesUsed?.includes("6")}
-                onSelected={() => handlePlayTile(selectedIndex, "6")}
-              />
-              <UserTroopCell color="black" value="" />
-              <UserTroopCell
-                color={color}
-                value="n"
-                used={!!nukesUsed && nukesUsed > 1}
-                onSelected={() => handlePlayTile(selectedIndex, "n")}
-              />
-
-              <UserTroopCell
-                color={color}
-                value="7"
-                used={!!allValuesUsed?.includes("7")}
-                onSelected={() => handlePlayTile(selectedIndex, "7")}
-              />
-              <UserTroopCell
-                color={color}
-                value="8"
-                used={!!allValuesUsed?.includes("8")}
-                onSelected={() => handlePlayTile(selectedIndex, "8")}
-              />
-              <UserTroopCell
-                color={color}
-                value="9"
-                used={!!allValuesUsed?.includes("9")}
-                onSelected={() => handlePlayTile(selectedIndex, "9")}
-              />
-              <UserTroopCell color="black" value="" />
-              <UserTroopCell
-                color={color}
-                value="n"
-                used={!!nukesUsed && nukesUsed > 2}
-                onSelected={() => handlePlayTile(selectedIndex, "n")}
-              />
-            </div>
+            <Inventory
+              color={color}
+              valuesUsed={allValuesUsed}
+              nukesUsed={nukesUsed}
+              handleSelect={(value) => {
+                handlePlayTile(selectedIndex, value);
+              }}
+            />
           )}
         </div>
         <div className="text-4xl">

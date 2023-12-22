@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import { Tile } from "./types";
-import { BoardCell } from "../Game/BoardCell";
+import { BoardCell } from "./BoardCell";
 import { Fragment } from "react";
 import { Colors } from "../elements/Tile/types";
 
