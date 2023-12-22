@@ -8,8 +8,9 @@ import { UserTroopCell } from "../components/Game/UserTroopCell";
 import { Board } from "../components/Board/Board";
 import { buildBoardState } from "../components/Board/util";
 import { LoginCard } from "../components/LoginCard";
+import { Colors } from "../components/elements/Tile/types";
 
-const colorOrder = ["red", "blue", "green", "purple"];
+const colorOrder: Colors[] = ["red", "blue", "green", "yellow"];
 
 export default function Page() {
   const { roomId } = useParams<{ roomId: string }>();
@@ -48,10 +49,10 @@ export default function Page() {
     (index: number, value: string) => {
       if (!["1", "2", "3", "4", "5", "6", "7", "8", "9", "n"].includes(value)) {
         return;
-        3;
       }
 
       socket?.emit("room/move", { index, value }, handleStateUpdate);
+      setSelectedIndex(-1);
     },
     [socket]
   );
@@ -77,13 +78,20 @@ export default function Page() {
       handleStateUpdate(state);
     });
 
+    return () => {
+      socket?.off("state");
+      socket?.off("roomState");
+      socket?.emit("room/leave", roomId);
+    };
+  }, [roomId, socket, user]);
+
+  useEffect(() => {
     window.addEventListener("keypress", handleKeyPress);
 
     return () => {
-      socket?.off("state");
-      socket?.emit("room/leave", roomId);
+      window.removeEventListener("keypress", handleKeyPress);
     };
-  }, [handleKeyPress, roomId, socket, user]);
+  }, [handleKeyPress]);
 
   if (!user) {
     return (
@@ -102,8 +110,7 @@ export default function Page() {
   };
 
   const color =
-    playerIndex !== undefined &&
-    (colorOrder[playerIndex] as "red" | "blue" | "green" | "purple");
+    playerIndex !== undefined && (colorOrder[playerIndex] as Colors);
 
   const gameState = roomState?.gameState
     ? (roomState?.gameState as GameState)
@@ -147,7 +154,11 @@ export default function Page() {
               canSelect={started && playerIndex === gameState?.turn}
               playerColor={color}
               selectedIndex={selectedIndex}
-              onCellSelect={(i) => setSelectedIndex(i)}
+              onCellSelect={(i) => {
+                started &&
+                  playerIndex === gameState?.turn &&
+                  setSelectedIndex(i);
+              }}
             />
           )}
           {color && (
@@ -230,6 +241,7 @@ export default function Page() {
               <UserTroopCell
                 color={color}
                 value="n"
+                used={!!nukesUsed && nukesUsed > 2}
                 onSelected={() => handlePlayTile(selectedIndex, "n")}
               />
             </div>

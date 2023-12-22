@@ -6,7 +6,7 @@ export const RoomsNamespace = 'rooms';
 export const setRoom = async (
   data: Room
 ) => {
-  await redis.set(`${RoomsNamespace}:${data.id}`, JSON.stringify(data));
+  return await redis.set(`${RoomsNamespace}:${data.id}`, JSON.stringify(data));
 };
 
 export const getRoom = async (

@@ -10,7 +10,7 @@ interface BoardCellProps {
   tiles: TileType[];
   selectable?: boolean;
   onValueChange?: (value: string) => void;
-  onCellSelect?: () => void;
+  onClick?: () => void;
   // borders: {
   //   bottom: boolean;
   //   top: boolean;
@@ -24,12 +24,11 @@ interface BoardCellProps {
 export function BoardCell({
   tiles,
   playerColor,
-  selectable = true,
-  onCellSelect,
+  // selectable = true,
+  onClick,
   selected,
 }: BoardCellProps) {
   const [hover, setHover] = useState(false);
-  console.log(selectable, selected, playerColor);
   return (
     <div
       className={classNames(
@@ -41,7 +40,7 @@ export function BoardCell({
           borderColor: Background_Colors[playerColor],
         }),
       }}
-      onClick={onCellSelect}
+      onClick={() => onClick?.()}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
@@ -49,19 +48,23 @@ export function BoardCell({
         return (
           <Tile
             className={classNames(
-              "absolute group transform w-16 h-16 transition duration-75",
+              "absolute group transform w-14 h-14 transition duration-150 scale",
               {
                 "rotate-0": pos === 0,
                 "rotate-15": pos === 1,
                 "rotate-30": pos === 2,
                 "rotate-45": pos === 3,
+                "scale-125": value === "n",
               }
             )}
             style={{
               ...(hover && {
-                transform: `translateX(${pos * 3}rem) translateY(-${
+                transform: `translateX(${pos * 1}rem) translateY(-${
                   pos * 2
-                }rem) rotate(${pos * 15}deg)`,
+                }rem) rotate(${pos * 15}deg) ${
+                  value === "n" ? "scale(1.25)" : ""
+                }`,
+                transformOrigin: "bottom right 60rem",
                 zIndex: pos * 2,
               }),
             }}

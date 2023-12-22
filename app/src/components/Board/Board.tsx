@@ -54,7 +54,10 @@ export function Board({
                 selectable={canSelect}
                 playerColor={playerColor}
                 onValueChange={(v: string) => onType(index, v)}
-                onCellSelect={() => onCellSelect(index)}
+                onClick={() => {
+                  console.log(57);
+                  onCellSelect(index);
+                }}
                 selected={selectedIndex === index}
               />
             </div>

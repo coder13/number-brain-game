@@ -31,6 +31,9 @@ export function LoginCard() {
             onChange={(event) => setUsername(event.target.value)}
             autoFocus
           />
+          <button type="submit" className="mt-4">
+            Join
+          </button>
         </form>
       </div>
     </div>

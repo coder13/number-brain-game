@@ -6,7 +6,7 @@ export function UserTroopCell({
   used,
   onSelected,
 }: {
-  color: "red" | "blue" | "green" | "purple" | "black";
+  color: "red" | "blue" | "green" | "yellow" | "black";
   value: string;
   used?: boolean;
   onSelected?: () => void;
