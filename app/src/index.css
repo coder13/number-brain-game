@@ -4,7 +4,7 @@
 
 @font-face {
   font-family: "sourceSans3";
-  src: url("@/fonts/SourceSans3-Regular.ttf") format("ttf");
+  src: url("@/assets/fonts/SourceSans3-Regular.ttf") format("ttf");
   font-weight: normal;
   font-style: normal;
 }

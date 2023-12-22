@@ -5,15 +5,17 @@ FROM node:18.16.0-alpine3.17
 RUN mkdir -p /opt/app 
 WORKDIR /opt/app
 
-# Copy package.json and package-lock.json to the /app directory
-COPY server/ .
+COPY server/ server/
+COPY app/ app/
+COPY package.json .
+COPY yarn.lock .
 
 # Install dependencies
 RUN yarn install
 RUN yarn build
 
 # Expose application port
-EXPOSE 4000
+EXPOSE 3000
 
 # Start the application
 CMD yarn start

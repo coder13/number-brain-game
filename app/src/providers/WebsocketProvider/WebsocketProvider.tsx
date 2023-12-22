@@ -5,8 +5,17 @@ import { Room } from "../../types";
 
 interface WebsocketProviderProps extends PropsWithChildren {}
 
+const getOrigin = () => {
+  if (import.meta.env.VITE_WS_URL === "/") {
+    return `${window.location.protocol === "https" ? "wss" : "ws"}://${
+      window.location.host
+    }`;
+  }
+
+  return import.meta.env.VITE_WS_URL;
+};
+
 export function WebsocketProvider({ children }: WebsocketProviderProps) {
-  // const [token, setToken] = useState(localStorage.getItem("token") || "");
   const [socket, setSocket] = useState<Socket | null>(null);
   const [status, setStatus] = useState<WebsocketContextProps["status"]>({
     connected: false,
@@ -14,8 +23,10 @@ export function WebsocketProvider({ children }: WebsocketProviderProps) {
   });
   const [rooms, setRooms] = useState<Room[]>([]);
 
+  console.log("connecting to", getOrigin());
+
   useEffect(() => {
-    const _socket = io(import.meta.env.VITE_WS_URL as string);
+    const _socket = io(getOrigin());
 
     _socket.connect();
 

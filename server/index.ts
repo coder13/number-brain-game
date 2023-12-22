@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import { createServer } from 'http';
 import { Server, Socket } from 'socket.io';
 import { PrivateGameState, Room, User } from './types';
@@ -6,6 +7,7 @@ import { buildBoardStateForPlayer, determineWinner, newGameState } from './game'
 import { generateSlug } from './helpers/randomWords';
 import { RoomsNamespace, getRoom, setRoom } from './controllers/rooms';
 import { redis } from './redis';
+import path from 'path';
 
 const port = process.env.PORT && parseInt(process.env.PORT, 10) || 3000;
 
@@ -23,9 +25,25 @@ const generateSlugNotAlreadyUsed = async (): Promise<string> => {
 (async () => {
   const app = express();
 
-  app.get('/', (_, res) => {
-    return res.send('Hello world');
+  //cors
+  app.use(cors());
+
+  app.get('/ping', (_, res) => {
+    res.send('pong');
   });
+
+  if (process.env.NODE_ENV === 'production') {
+    app.use(express.static('../app/dist'));
+    app.get('/', (_, res) => {
+      // out of dist, out of server into app
+      res.sendFile(path.resolve(__dirname, '../../app/dist/index.html'));
+    });
+
+    app.get('/*', (_, res) => {
+      // out of dist, out of server into app
+      res.sendFile(path.resolve(__dirname, '../../app/dist/index.html'));
+    });
+  }
 
   const server = createServer(app);
 

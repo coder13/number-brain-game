@@ -4,7 +4,6 @@ import { useAuth } from "../providers/AuthProvider";
 import { useWebsocket } from "../providers/WebsocketProvider";
 import { GameState, Room } from "../types";
 import classNames from "classnames";
-import { UserTroopCell } from "../components/Inventory/InventoryCell";
 import { Board } from "../components/Board/Board";
 import { buildBoardState } from "../components/Board/util";
 import { LoginCard } from "../components/LoginCard";

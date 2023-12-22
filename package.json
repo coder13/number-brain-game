@@ -5,8 +5,15 @@
   "repository": "git@github.com:coder13/number-brain-game.git",
   "author": "Cailyn Hoover <choover11@gmail.com>",
   "license": "MIT",
+  "private": true,
+  "workspaces": [
+    "app/",
+    "server/"
+  ],
   "scripts": {
-    "dev": "concurrently \"cd app && yarn dev --host\" \"cd server && yarn dev\""
+    "dev": "concurrently \"cd app && yarn dev --host\" \"cd server && yarn dev\"",
+    "build": "concurrently \"cd app && yarn build\" \"cd server && yarn build\"",
+    "start": "cd server && yarn start"
   },
   "dependencies": {
     "concurrently": "^8.2.2"
