@@ -12,7 +12,9 @@
   ],
   "scripts": {
     "dev": "concurrently \"cd app && yarn dev --host\" \"cd server && yarn dev\"",
-    "build": "concurrently \"cd app && yarn build\" \"cd server && yarn build\"",
+    "build": "concurrently \"yarn build:app\" \"yarn build:server\"",
+    "build:app": "cd app && yarn build",
+    "build:server": "cd server && yarn build",
     "start": "cd server && yarn start"
   },
   "dependencies": {

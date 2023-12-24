@@ -12,7 +12,8 @@ COPY yarn.lock .
 
 # Install dependencies
 RUN yarn install
-RUN yarn build
+RUN yarn build:app
+RUN yarn build:server
 
 # Expose application port
 EXPOSE 3000
