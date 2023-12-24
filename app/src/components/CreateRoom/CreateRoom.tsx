@@ -1,6 +1,7 @@
 import { useWebsocket } from "../../providers/WebsocketProvider";
 import { Room } from "../../types";
 import { useNavigate } from "react-router-dom";
+import { GameButton } from "../ui/GameButton";
 
 export function CreateRoom() {
   const navigate = useNavigate();
@@ -18,13 +19,10 @@ export function CreateRoom() {
   };
 
   return (
-    <div className="w-full ">
-      <button
-        className="p-4 w-full h-full hover:bg-slate-50 cursor-pointer border-2 rounded-lg"
-        onClick={handleCreateRoom}
-      >
+    <div className="w-full">
+      <GameButton onClick={handleCreateRoom} className="w-full text-lg">
         Create Room
-      </button>
+      </GameButton>
     </div>
   );
 }

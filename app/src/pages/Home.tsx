@@ -16,6 +16,9 @@ export default function Page() {
 
       {user ? (
         <div className="pt-12 w-full space-y-4">
+          <p>
+            User: <span className="font-bold">{user.username}</span>
+          </p>
           <CreateRoom />
           <JoinRoom />
         </div>

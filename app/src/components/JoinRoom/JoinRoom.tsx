@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useWebsocket } from "../../providers/WebsocketProvider";
 import classNames from "classnames";
+import { GameButton } from "../ui/GameButton";
 
 export function JoinRoom() {
   const navigate = useNavigate();
@@ -41,16 +42,16 @@ export function JoinRoom() {
   }, []);
 
   return (
-    <div className="w-full ">
+    <div className="w-full">
       {!open && (
-        <button
-          className="p-4 w-full h-full hover:bg-slate-50 cursor-pointer border-2 rounded-lg"
+        <GameButton
           onClick={() => {
             setOpen(true);
           }}
+          className="w-full text-lg"
         >
           Join Room
-        </button>
+        </GameButton>
       )}
       {open && (
         <div className="w-full p-4">
@@ -77,12 +78,9 @@ export function JoinRoom() {
                 autoFocus
               />
             </div>
-            <button
-              type="submit"
-              className="p-4 w-full h-full hover:bg-slate-200 cursor-pointer border-1 rounded-2xl bg-slate-100 transition-all hover:opacity-80"
-            >
-              Join
-            </button>
+            <GameButton type="submit" className="w-full text-lg">
+              Join{" "}
+            </GameButton>
           </form>
         </div>
       )}

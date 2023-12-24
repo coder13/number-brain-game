@@ -1,3 +1,4 @@
+import classNames from "classnames";
 import { Tile, TileProps } from "../elements/Tile/Tile";
 import { Colors } from "../elements/Tile/types";
 
@@ -6,15 +7,26 @@ export function InventoryCell({
   value,
   used,
   onSelected,
+  className,
+  selectable,
 }: {
   color: Colors;
   value: string;
   used?: boolean;
   onSelected?: () => void;
+  className?: string;
+  selectable: boolean;
 }) {
   return (
     <div
-      className="cell col-span-1 row-span-1 h-16 w-16 flex justify-center items-center text-4xl"
+      className={classNames(
+        "h-16 w-16 flex justify-center items-center text-4xl",
+        {
+          "hover:opacity-75 cursor-pointer opacity-100": selectable,
+          "opacity-50": !selectable,
+        },
+        className
+      )}
       onClick={() => onSelected?.()}
     >
       <Tile

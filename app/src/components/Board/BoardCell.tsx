@@ -1,5 +1,4 @@
 import classNames from "classnames";
-// import { Background_Colors, Text_Colors } from "./colors";
 import { Tile as TileType } from "./types";
 import { useState } from "react";
 import { Tile, TileProps } from "../elements/Tile/Tile";
@@ -11,12 +10,6 @@ interface BoardCellProps {
   selectable?: boolean;
   onValueChange?: (value: string) => void;
   onClick?: () => void;
-  // borders: {
-  //   bottom: boolean;
-  //   top: boolean;
-  //   left: boolean;
-  //   right: boolean;
-  // };
   playerColor: Colors;
   selected?: boolean;
 }
@@ -24,7 +17,6 @@ interface BoardCellProps {
 export function BoardCell({
   tiles,
   playerColor,
-  // selectable = true,
   onClick,
   selected,
 }: BoardCellProps) {
@@ -32,7 +24,7 @@ export function BoardCell({
   return (
     <div
       className={classNames(
-        "flex justify-center items-center text-4x h-16 w-16 group border-4 border-white"
+        "flex justify-center items-center text-4x h-16 w-16 group"
       )}
       style={{
         ...(selected && {
@@ -40,31 +32,33 @@ export function BoardCell({
           borderColor: Background_Colors[playerColor],
         }),
       }}
-      onClick={() => onClick?.()}
+      onClick={() => {
+        onClick?.();
+        // setHover((prev) => !prev);
+      }}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
+      // onTouchStart={() => setHover((prev) => !prev)}
+      // onTouchEnd={() => setHover(false)}
     >
       {tiles.map(({ pos, colorsPlayed, value }) => {
         return (
           <Tile
             className={classNames(
-              "absolute group transform w-14 h-14 transition duration-150 scale",
+              "absolute group transform w-16 h-16 transition duration-150 scale",
               {
                 "rotate-0": pos === 0,
                 "rotate-15": pos === 1,
                 "rotate-30": pos === 2,
                 "rotate-45": pos === 3,
-                "scale-125": value === "n",
               }
             )}
             style={{
               ...(hover && {
                 transform: `translateX(${pos * 1}rem) translateY(-${
-                  pos * 2
-                }rem) rotate(${pos * 15}deg) ${
-                  value === "n" ? "scale(1.25)" : ""
-                }`,
-                transformOrigin: "bottom right 60rem",
+                  pos * 3
+                }rem) rotate(${pos * 15}deg) ${value === "n" ? "" : ""}`,
+                // transformOrigin: "bottom right 60rem",
                 zIndex: pos * 2,
               }),
             }}

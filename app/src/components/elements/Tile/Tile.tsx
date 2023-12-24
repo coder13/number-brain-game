@@ -20,9 +20,16 @@ export interface TileProps extends SVGProps<SVGSVGElement> {
   className?: string;
 }
 
-export function Tile({ value, colors, nuke, ...props }: TileProps) {
+export function Tile({ value, colors, nuke, style, ...props }: TileProps) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" {...props}>
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 180 180"
+      style={{
+        ...style,
+      }}
+      {...props}
+    >
       {!nuke && colors.length === 1 && byColor[colors[0]]}
       {!nuke && colors.length > 1 && <Tie colors={colors} />}
 
