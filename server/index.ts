@@ -101,7 +101,7 @@ const generateSlugNotAlreadyUsed = async (): Promise<string> => {
       // join the socket to the room
       socket.room = roomId;
 
-      if (socket.user && !room.users.some(({ username }) => username === socket.user?.username)) {
+      if (socket.user && !room.users.some(({ token }) => token === socket.user?.token)) {
         // add the user to the room
         room.users.push(socket.user);
       }
@@ -112,10 +112,10 @@ const generateSlugNotAlreadyUsed = async (): Promise<string> => {
         }
 
         // if game is ongoing, send the game state to the player
-        if (room.gameState && room.gameState?.players.some(({ username }) => username === socket.user?.username)) {
+        if (room.gameState && room.gameState?.players.some(({ token }) => token === socket.user?.token)) {
           const gameState = room.gameState as PrivateGameState;
           // send the personalized game state to the player
-          const playerIndex = gameState.players.findIndex(({ username }) => username === socket.user?.username);
+          const playerIndex = gameState.players.findIndex(({ token }) => token === socket.user?.token);
           const boardState = buildBoardStateForPlayer(gameState, playerIndex);
 
           cb({
@@ -152,7 +152,7 @@ const generateSlugNotAlreadyUsed = async (): Promise<string> => {
       socket.leave(room.id);
       socket.room = undefined;
 
-      room.users = room.users.filter(({ username }) => username !== socket.user?.username);
+      room.users = room.users.filter(({ token }) => token !== socket.user?.token);
 
       await setRoom(room);
 
@@ -167,7 +167,7 @@ const generateSlugNotAlreadyUsed = async (): Promise<string> => {
     });
 
     socket.on('room/move', async (move: { index: number, value: string }, cb) => {
-      console.log('room/move', move);
+      console.log('room/move', socket.user, move);
 
       if (!socket.user || !socket.room) {
         return cb({
@@ -190,7 +190,7 @@ const generateSlugNotAlreadyUsed = async (): Promise<string> => {
         });
       }
 
-      const player = gameState?.players.findIndex(({ username }) => username === socket.user?.username);
+      const player = gameState?.players.findIndex(({ token }) => token === socket.user?.token);
       if (player < 0) {
         return cb({
           error: 'Player not found',
@@ -236,8 +236,8 @@ const generateSlugNotAlreadyUsed = async (): Promise<string> => {
 
       setRoom(room).then(() => {
         gameState.players.forEach((p) => {
-          const socketId = room.users.find((i) => i.username === p.username)?.socketId;
-          const playerIndex = gameState.players.findIndex((i) => i.username === p.username);
+          const socketId = room.users.find((i) => i.token === p.token)?.socketId;
+          const playerIndex = gameState.players.findIndex((i) => i.token === p.token);
           const boardState = buildBoardStateForPlayer(gameState, playerIndex);
           if (socketId) {
             io.to(socketId).emit('state', {
@@ -245,7 +245,7 @@ const generateSlugNotAlreadyUsed = async (): Promise<string> => {
               gameState: boardState,
             });
           } else {
-            console.log('Socket not found for player', p.username);
+            console.log('Socket not found for player', p.username, p.token);
           }
         });
       });

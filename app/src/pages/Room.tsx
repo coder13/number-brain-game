@@ -25,7 +25,7 @@ export default function Page() {
   const [selectedIndex, setSelectedIndex] = useState(-1);
 
   const playerIndex = roomState?.gameState?.players?.findIndex(
-    (u) => u.username === user?.username
+    (u) => u.token === user?.token
   );
 
   const handleStateUpdate = (state: Room | { error: string }) => {
@@ -202,7 +202,12 @@ export default function Page() {
       <div className="flex flex-col items-center max-w-fit space-y-2 flex-grow min-h-0 pb-2">
         <div className={classNames()}>
           <Players
-            players={roomState?.gameState?.players.map((i) => i.username) || []}
+            players={
+              roomState?.gameState?.players.map((i) => ({
+                username: i.username,
+                token: i.token,
+              })) || []
+            }
             turn={
               roomState?.gameState?.players?.[roomState?.gameState?.turn]
                 .username
@@ -318,16 +323,22 @@ export const Players = ({
   players,
   turn,
 }: {
-  players: string[];
+  players: {
+    username: string;
+    token: string;
+  }[];
+  /**
+   * Token of the player whose turn it is
+   */
   turn?: string;
 }) => {
   return (
     <div className="flex w-full justify-stretch items-stretch space-x-1 my-2">
-      {players.map((playerName, index) => {
+      {players.map(({ username, token }, index) => {
         return (
           <PlayerPill
-            username={playerName}
-            turn={turn === playerName}
+            username={username}
+            turn={turn === token}
             color={["red", "blue", "green", "purple"][index]}
           />
         );
