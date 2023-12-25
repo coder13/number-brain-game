@@ -7,7 +7,7 @@ interface WebsocketProviderProps extends PropsWithChildren {}
 
 const getOrigin = () => {
   if (import.meta.env.VITE_WS_URL === "/") {
-    return `${window.location.protocol === "https" ? "wss" : "ws"}://${
+    return `${window.location.protocol === "https:" ? "wss" : "ws"}://${
       window.location.host
     }`;
   }
